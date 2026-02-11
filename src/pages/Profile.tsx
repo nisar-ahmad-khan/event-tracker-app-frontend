@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   UserCircleIcon,
@@ -7,13 +7,14 @@ import {
   CameraIcon,
   BriefcaseIcon,
   PlusCircleIcon,
-  TicketIcon,
-  UserPlusIcon,
-  TagIcon,
   ShieldCheckIcon,
   XMarkIcon,
   SparklesIcon,
-  ClockIcon, // Added for the end date field
+  ClockIcon,
+  GlobeAltIcon,
+  DocumentTextIcon,
+  UsersIcon,
+  PhotoIcon, // Added for image upload
 } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
 import { useProfileStore } from '../stores/store';
@@ -29,6 +30,7 @@ const Profile: React.FC = () => {
   const followerStore = useFollowerStore();
   const organizerStore = useOrganizerStore();
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [activeTab, setActiveTab] = useState('General');
   const [name, setName] = useState('');
@@ -38,15 +40,20 @@ const Profile: React.FC = () => {
   const [website, setWebsite] = useState('');
 
   const [guestInput, setGuestInput] = useState('');
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  
   const [eventData, setEventData] = useState({
     title: '',
     location: '',
-    date: '',      // This is the start date
-    endDate: '',   // ✅ Added closing/ending date
+    date: '',
+    endDate: '',
+    description: '',
+    websiteUrl: '',
     chiefGuests: [] as string[],
     isFree: true,
     ticketPrice: '',
     category: 'Networking Meetup',
+    eventImage: null as File | null, // ✅ Added for the file field
   });
 
   const user = localStorage.getItem('user');
@@ -70,6 +77,19 @@ const Profile: React.FC = () => {
       setEmail(authStore.user.email);
     }
   }, [authStore.user]);
+
+  // Handle Image Selection
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast.error("Image is too large. Max 5MB.");
+        return;
+      }
+      setEventData({ ...eventData, eventImage: file });
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
 
   const addGuest = (e: React.KeyboardEvent) => {
     if ((e.key === 'Enter' || e.key === ',') && guestInput.trim()) {
@@ -139,12 +159,11 @@ const Profile: React.FC = () => {
   };
 
   const handlePublishEvent = async () => {
-    if (!eventData.location || !eventData.date || !eventData.endDate || eventData.chiefGuests.length === 0) {
-      toast.error('All fields including Start and End dates are required');
+    if (!eventData.location || !eventData.date || !eventData.endDate) {
+      toast.error('Location and both Dates are required');
       return;
     }
 
-    // Logic to check if end date is before start date
     if (new Date(eventData.endDate) <= new Date(eventData.date)) {
       toast.error('Event must end after it starts!');
       return;
@@ -152,16 +171,21 @@ const Profile: React.FC = () => {
 
     try {
       toast.success('Event published successfully!');
+      // Reset form
       setEventData({
         title: '',
         location: '',
         date: '',
         endDate: '',
+        description: '',
+        websiteUrl: '',
         chiefGuests: [],
         isFree: true,
         ticketPrice: '',
         category: 'Networking Meetup',
+        eventImage: null,
       });
+      setImagePreview(null);
       setGuestInput('');
     } catch (err: any) {
       toast.error(err?.message || 'Failed to publish event');
@@ -179,9 +203,6 @@ const Profile: React.FC = () => {
             <div className="w-32 h-32 rounded-[2rem] overflow-hidden ring-4 ring-indigo-50">
               <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e" alt="Profile" className="w-full h-full object-cover" />
             </div>
-            <button className="absolute -bottom-2 -right-2 p-2 bg-indigo-600 text-white rounded-xl shadow-lg hover:scale-110 transition-transform">
-              <CameraIcon className="w-5 h-5" />
-            </button>
           </div>
 
           <div className="flex-1">
@@ -234,27 +255,47 @@ const Profile: React.FC = () => {
                 </motion.div>
               )}
 
-              {activeTab === 'Organizer' && !isActuallyOrganizer && (
-                <motion.div key="reg" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-6">
-                  <h2 className="text-2xl font-black">Become an Organizer</h2>
-                  <input value={phone} onChange={e => setPhone(e.target.value)} className="w-full p-4 rounded-2xl bg-slate-50 outline-none" placeholder="Phone number" />
-                  <textarea value={description} onChange={e => setDescription(e.target.value)} className="w-full p-4 rounded-2xl bg-slate-50 outline-none min-h-[120px]" placeholder="About your organization..." />
-                  <input value={website} onChange={e => setWebsite(e.target.value)} className="w-full p-4 rounded-2xl bg-slate-50 outline-none" placeholder="Website (optional)" />
-                  <button onClick={handleRegisterOrganizer} className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black shadow-lg">Submit Application</button>
-                </motion.div>
-              )}
-
               {activeTab === 'Organize an Event' && isActuallyOrganizer && (
                 <motion.div key="organize" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-8">
                   <div className="flex items-center gap-3">
                     <div className="p-3 bg-indigo-100 rounded-2xl text-indigo-600"><SparklesIcon className="w-6 h-6" /></div>
                     <div>
                       <h2 className="text-2xl font-black">Event Creation</h2>
-                      <p className="text-slate-500 font-medium">Fill in the details to launch your event.</p>
+                      <p className="text-slate-500 font-medium">Launch your next big thing.</p>
                     </div>
                   </div>
 
                   <div className="space-y-6">
+                    {/* ✅ New File Upload Field */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-slate-700 ml-1">Event Cover Image</label>
+                      <div 
+                        onClick={() => fileInputRef.current?.click()}
+                        className="relative w-full h-48 bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-200 hover:border-indigo-400 transition-all cursor-pointer overflow-hidden flex flex-col items-center justify-center group"
+                      >
+                        {imagePreview ? (
+                          <>
+                            <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <CameraIcon className="w-8 h-8 text-white" />
+                            </div>
+                          </>
+                        ) : (
+                          <div className="text-center">
+                            <PhotoIcon className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">upload cover image</p>
+                          </div>
+                        )}
+                      </div>
+                      <input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        onChange={handleImageChange} 
+                        accept="image/*" 
+                        className="hidden" 
+                      />
+                    </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
                         <label className="text-sm font-bold text-slate-700 ml-1">Location</label>
@@ -264,14 +305,13 @@ const Profile: React.FC = () => {
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm font-bold text-slate-700 ml-1">Event Category</label>
+                        <label className="text-sm font-bold text-slate-700 ml-1">Category</label>
                         <select className="w-full p-4 rounded-2xl bg-slate-50 outline-none border focus:border-indigo-500" value={eventData.category} onChange={e => setEventData({...eventData, category: e.target.value})}>
                           {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                         </select>
                       </div>
                     </div>
 
-                    {/* ✅ New Grid for Start and End Dates */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
                         <label className="text-sm font-bold text-slate-700 ml-1">Start Date & Time</label>
@@ -290,19 +330,41 @@ const Profile: React.FC = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-sm font-bold text-slate-700 ml-1">Chief Guests (Press Enter)</label>
-                      <div className="bg-slate-50 rounded-[1.5rem] p-3 border focus-within:border-indigo-500 transition-all">
-                        <div className="flex flex-wrap gap-2 mb-2">
-                          {eventData.chiefGuests.map((guest, index) => (
-                            <span key={index} className="flex items-center gap-1 px-3 py-1 bg-indigo-600 text-white rounded-full text-sm font-bold">
-                              {guest}
-                              <button onClick={() => removeGuest(index)}><XMarkIcon className="w-4 h-4" /></button>
-                            </span>
-                          ))}
-                        </div>
-                        <input value={guestInput} onKeyDown={addGuest} onChange={(e) => setGuestInput(e.target.value)} placeholder="Add guest..." className="w-full p-2 bg-transparent outline-none" />
+                      <label className="text-sm font-bold text-slate-700 ml-1">Event Description (Optional)</label>
+                      <div className="flex items-start bg-slate-50 rounded-2xl px-4 border focus-within:border-indigo-500 transition-all">
+                        <DocumentTextIcon className="w-5 h-5 text-slate-400 mt-4" />
+                        <textarea className="w-full p-4 bg-transparent outline-none min-h-[100px] resize-none" placeholder="Tell people what the event is about..." value={eventData.description} onChange={e => setEventData({...eventData, description: e.target.value})} />
                       </div>
                     </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-700 ml-1">Website (Optional)</label>
+                        <div className="flex items-center bg-slate-50 rounded-2xl px-4 border focus-within:border-indigo-500 transition-all">
+                          <GlobeAltIcon className="w-5 h-5 text-slate-400" />
+                          <input className="w-full p-4 bg-transparent outline-none" placeholder="https://..." value={eventData.websiteUrl} onChange={e => setEventData({...eventData, websiteUrl: e.target.value})} />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-700 ml-1">Chief Guests (Optional)</label>
+                        <div className="flex items-center bg-slate-50 rounded-2xl px-4 border focus-within:border-indigo-500 transition-all">
+                          <UsersIcon className="w-5 h-5 text-slate-400" />
+                          <input value={guestInput} onKeyDown={addGuest} onChange={(e) => setGuestInput(e.target.value)} placeholder="Press Enter to add" className="w-full p-4 bg-transparent outline-none" />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Guest Tags Display */}
+                    {eventData.chiefGuests.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {eventData.chiefGuests.map((guest, index) => (
+                          <span key={index} className="flex items-center gap-1 px-3 py-1 bg-indigo-600 text-white rounded-full text-sm font-bold">
+                            {guest}
+                            <button onClick={() => removeGuest(index)}><XMarkIcon className="w-4 h-4" /></button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
 
                     <div className="p-1 bg-slate-100 rounded-3xl flex gap-1">
                       <button onClick={() => setEventData({ ...eventData, isFree: true })} className={`flex-1 py-4 rounded-[1.2rem] font-black transition-all ${eventData.isFree ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500'}`}>Free</button>
