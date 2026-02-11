@@ -147,25 +147,7 @@ const FollowersPage: React.FC = () => {
                           <ChatBubbleLeftRightIcon className="w-5 h-5" />
                         </button>
 
-                        <AnimatePresence mode="wait">
-                          {!follower.isMutual && (
-                            <motion.button
-                              key="follow-btn"
-                              initial={{ opacity: 0, scale: 0.8 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              exit={{ opacity: 0, scale: 0.8, width: 0 }}
-                              disabled={loadingId === follower.pivot?.organizer_id}
-                              onClick={() => handleFollowBack(follower.pivot?.organizer_id)}
-                              className="px-4 py-1.5 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700 disabled:bg-slate-300 transition-all shadow-sm"
-                            >
-                              {loadingId === follower.pivot?.organizer_id ? (
-                                <ArrowPathIcon className="w-4 h-4 animate-spin" />
-                              ) : (
-                                "Follow Back"
-                              )}
-                            </motion.button>
-                          )}
-                        </AnimatePresence>
+                       
                       </div>
                     </td>
                   </motion.tr>

@@ -66,7 +66,7 @@ export const useFollowerStore = create<FollowersState>((set, get) => ({
           followers: response.data.followers,
           error: null,
         });
-        const {followers} = get();
+        const {followers } = get();
         console.log("look",followers)
       } else {
         set({ count: 0, error: "Failed to load followers" });
