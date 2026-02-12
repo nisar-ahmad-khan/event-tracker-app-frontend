@@ -17,11 +17,6 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const authStore = useProfileStore();
 
-  const initializeAuth = useProfileStore(state => state.initializeAuth);
-
-  useEffect(() => {
-    initializeAuth();
-  }, [initializeAuth]);
 
   const logoutUser = async () => {
     if (confirm("Are you sure you want to log out?")) {

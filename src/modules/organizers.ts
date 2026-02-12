@@ -1,131 +1,125 @@
 import axios from "axios";
 import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
 import { API_BASE_URL } from "./api";
 import { useProfileStore } from "../stores/store";
-import { createJSONStorage, persist } from "zustand/middleware";
 
-interface Organizer{
-    user_id?: number | string
-    phone_number: string | number
-    description: string
-    url?: string
-}
-interface Payload{
-    phone: string | number,
-    description: string,
-    website: string
+interface RegisteredOrganizers {
+  id: string | number;
+  user_id: string | number;
+  phone_number: string | number;
+  description: string;
+  url: string;
+  created_at: string;
+  updated_at: string;
 }
 
-
-interface OrganizerUser {
-        id: string | number,
-        name: string,
-        email: string,
-        email_verified_at: null | string,
-        created_at: string,
-        updated_at: string
+interface OrganizerState {
+  orgs: RegisteredOrganizers[];
+  meAsAnOrg: RegisteredOrganizers[];
+  loading: boolean;
+  register: (payload: {
+    phone: string;
+    description: string;
+    website: string;
+  }) => Promise<void>;
+  fetchOrganizers: () => Promise<void>;
+  createEvent: (formData: FormData) => Promise<void>;
 }
-
-interface RegisteredOrganizers  {
-            id: string|number,
-            user_id: string|number,
-            phone_number: number,
-            description: string,
-            url: string,
-            created_at: string,
-            updated_at: string
-        }
-
-        interface MeAsAnOrg{ phone_number: string | number,
-             description: string,
-              url: string,
-               user_id: string | number,
-                updated_at: string,
-                 created_at: string,
-                  id: string | number 
-                }
-
-
-interface OrganizerState{
-    user: Organizer[],
-    register: (payload: Payload)=> Promise<void>
-    fetchOrganizers:()=> Promise<void>
-    orgs: RegisteredOrganizers[]
-    message : string
-    organizerUser: OrganizerUser[]
-    meAsAnOrg: MeAsAnOrg[]
-}
-
 
 export const useOrganizerStore = create<OrganizerState>()(
   persist(
-    (set, get) => ({
-      user: [],
+    (set , get) => ({
       orgs: [],
-      message: "",
-      organizerUser: [],
       meAsAnOrg: [],
+      loading: false,
 
       register: async (payload) => {
+        set({ loading: true });
         try {
-          const user = useProfileStore.getState().user;
-          const token = useProfileStore.getState().token;
+          const { user, token } = useProfileStore.getState();
           if (!user?.id) throw new Error("User not logged in");
 
-          const response = await axios.post(
+          const res = await axios.post(
             `${API_BASE_URL}/api/reg-as-organizer/${user.id}`,
             {
               phone_number: payload.phone,
               description: payload.description,
               url: payload.website,
             },
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            }
+            { headers: { Authorization: `Bearer ${token}` } }
           );
 
-          if (response.data.success) {
-            set({ meAsAnOrg: response.data.data });
-            console.log("Organizer set:", response.data.data);
-          } else {
-            console.log("API error:", response.data.message);
-            set({ message: response.data.message || "Something went wrong" });
+          if (res.data.success) {
+            set({ meAsAnOrg: res.data.data });
+            const meAsAnOrg = get();
+            console.log("data" ,meAsAnOrg )
+          }
+
+          console.log("else statement:" ,res.data.message )
+        } catch (err: any) {
+          throw new Error(
+            err.response?.data?.message || "Organizer registration failed"
+          );
+        } finally {
+          set({ loading: false });
+        }
+      },
+
+      createEvent: async (formData: FormData) => {
+        set({ loading: true });
+        try {
+          const user = useProfileStore.getState().user
+          const token = useProfileStore.getState().token;
+          const res = await axios.post(
+            `${API_BASE_URL}/api/add-event/${user?.id}`,
+            formData,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+          if(res.data.success){
+            console.log('success' , res.data.data)
+          }
+
+          if (!res.data.success) {
+            throw new Error(res.data.message);
           }
         } catch (err: any) {
-          const message = err.response?.data?.message || err.message || "Something went wrong!";
-          console.log("Error registering organizer:", message);
-          set({ message });
+          throw new Error(
+            err.response?.data?.message || "Event creation failed"
+          );
+        } finally {
+          set({ loading: false });
         }
       },
 
       fetchOrganizers: async () => {
         try {
-          const user = useProfileStore.getState().user;
-          if (!user?.id) throw new Error("User not logged in");
+          const { user } = useProfileStore.getState();
+          if (!user?.id) return;
 
-          const response = await axios.get(`${API_BASE_URL}/api/organizers/${user.id}`);
+          const res = await axios.get(
+            `${API_BASE_URL}/api/organizers/${user.id}`
+          );
 
-          if (response.data.success) {
+          if (res.data.success) {
             set({
-              orgs: response.data.data,
-              organizerUser: response.data.data, // map if needed
-            });
-            console.log("Organizers fetched:", response.data.data);
-          } else {
-            set({
-              orgs: [],
-              message: response.data.message || "Something went wrong!",
+              orgs: res.data.data || [],
             });
           }
-        } catch (error: any) {
-          const message = error.response?.data?.message || error.message || "Something went wrong!";
-          set({ message });
+        } catch (err) {
+          console.error("Fetch organizers error:", err);
         }
       },
     }),
     {
       name: "organizers-store",
-      storage: createJSONStorage(() => sessionStorage),
+      partialize: ((state)=>({
+        meAsAnOrg : state.meAsAnOrg
+      }))
     }
   )
 );
