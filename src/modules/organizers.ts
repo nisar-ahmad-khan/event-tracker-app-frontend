@@ -53,7 +53,7 @@ interface OrganizerState{
     orgs: RegisteredOrganizers[]
     message : string
     organizerUser: OrganizerUser[]
-    meAsAnOrg: MeAsAnOrg|null
+    meAsAnOrg: MeAsAnOrg[]
 }
 
 
@@ -64,7 +64,7 @@ export const useOrganizerStore = create<OrganizerState>()(
       orgs: [],
       message: "",
       organizerUser: [],
-      meAsAnOrg: null,
+      meAsAnOrg: [],
 
       register: async (payload) => {
         try {
