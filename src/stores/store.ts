@@ -108,24 +108,34 @@ export const useProfileStore = create<AuthState>()(
 
       /* ---------- Logout ---------- */
       logout: async () => {
-        const { user, token } = get();
+  const { user, token } = get();
 
-        if (user && token) {
-          try {
-            await axios.post(
-              `${API_BASE_URL}/api/logout/${user.id}`,
-              {},
-              {
-                headers: { Authorization: `Bearer ${token}` },
-              }
-            );
-          } catch (err) {
-            console.error("Logout API failed", err);
-          }
+  // Call API logout if user is authenticated
+  if (user && token) {
+    try {
+      await axios.post(
+        `${API_BASE_URL}/api/logout/${user.id}`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
         }
+      );
+    } catch (err) {
+      console.error("Logout API failed", err);
+     
+    }
+  }
 
-        set({ user: null, token: null });
-      },
+
+  set({ user: null, token: null });
+
+
+  localStorage.removeItem("user");
+  localStorage.removeItem("token");
+  localStorage.removeItem("organizers-store");
+  window.location.href = "/";
+},
+
 
       /* ---------- Update Account ---------- */
       updateAccount: async (data) => {

@@ -52,7 +52,7 @@ export const useFollowerStore = create<FollowersState>((set, get) => ({
       }else{
         console.log("Auth User",isOrg)
       }
-     const meAsAnOrg = useOrganizerStore.getState().meAsAnOrg?.id;
+     const meAsAnOrg = useOrganizerStore.getState().meAsAnOrg?.email;
      console.warn("me as an org",meAsAnOrg)
       const response = await axios.get(
         `${API_BASE_URL}/api/my-followers/${meAsAnOrg}`
