@@ -4,6 +4,7 @@ import { API_BASE_URL } from "./api";
 import { persist } from "zustand/middleware";
 
 interface FetchEvents{
+    id: number
     title:string
     location:string
     description:string
@@ -17,14 +18,14 @@ interface FetchEvents{
 }
 
 interface EventProps{
-    fetchedEvents : FetchEvents|null
+    fetchedEvents : FetchEvents[]
     callEvents: ()=> Promise<void>
 }
 
 export const useEventStore = create<EventProps>()(
     persist(
     (set)=>({
-    fetchedEvents:null,
+    fetchedEvents:[],
     callEvents: async()=>{
         const response = await axios.get(`${API_BASE_URL}/api/all-events`);
         if(response.data.success){
@@ -35,7 +36,7 @@ export const useEventStore = create<EventProps>()(
         }else{
             console.log(response.data.message)
            set({
-            fetchedEvents:null
+            fetchedEvents:[]
            })
         }
     }

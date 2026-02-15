@@ -67,9 +67,7 @@ const Profile: React.FC = () => {
     eventImage: null as File | null,
   });
 
-  // =========================
-  // Initial Data & Guard
-  // =========================
+
   useEffect(() => {
     if (authUser === undefined) return;
     if (!authUser) {
@@ -96,9 +94,7 @@ const Profile: React.FC = () => {
       : { name: "Organizer", icon: BriefcaseIcon },
   ], [isActuallyOrganizer]);
 
-  // =========================
-  // Handlers
-  // =========================
+
   const handleSaveProfile = async () => {
     try {
       await updateAccount({ name, email });
@@ -381,10 +377,16 @@ const Profile: React.FC = () => {
                           onChange={(e) => setEventData({ ...eventData, category: e.target.value })}
                           className="w-full p-4 bg-white border border-indigo-100 rounded-2xl outline-none cursor-pointer font-bold text-indigo-600 shadow-sm"
                         >
-                          <option>Networking Meetup</option>
-                          <option>Workshop</option>
-                          <option>Conference</option>
-                          <option>Webinar</option>
+                          <option value="Networking Meetup">Networking Meetup</option>
+                          <option value="Technology">Technology</option>
+                          <option value="Music">Music</option>
+                          <option value="Art">Art</option>
+                          <option value="Business">Business</option>
+                          <option value="Food & Drink">Food & Drink</option>
+                          <option value="Sports & Fitness">Sports & Fitness</option>
+                          <option value="Workshop">Workshop</option>
+                          <option value="Conference">Conference</option>
+                          <option value="Webinar">Webinar</option>
                         </select>
                       </div>
                       <div>
