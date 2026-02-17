@@ -10,6 +10,8 @@ import Profile from "./pages/Profile"
 import AllOrganizers from "./pages/AllOrganizers"
 import FollowedAccounts from "./pages/FollowedAccounts"
 import FollowersPage from "./pages/FollowersPage"
+import UserPosts from "./pages/org_events/UserPosts"
+import Footer from "./components/Footer"
 // import useProfileStore from "./stores/store"
 
 function App() {
@@ -30,7 +32,9 @@ function App() {
     <Route path='/organizers' element={<AllOrganizers/>}/>
     <Route path="/following" element={<FollowedAccounts/>} />
     <Route path='/followers' element={<FollowersPage/>} />
+    <Route path="/my-events" element={<UserPosts/>}/>
     </Routes>
+    <Footer/>
     </BrowserRouter>
     </>
   )
