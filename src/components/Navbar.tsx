@@ -7,7 +7,8 @@ import {
   Bars3Icon,
   XMarkIcon,
   HeartIcon,
-  UserGroupIcon
+  UserGroupIcon,
+  BookmarkIcon // Added for Wishlist
 } from '@heroicons/react/24/outline';
 import { useProfileStore } from '../stores/store';
 
@@ -16,7 +17,6 @@ const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const authStore = useProfileStore();
-
 
   const logoutUser = async () => {
     if (confirm("Are you sure you want to log out?")) {
@@ -52,13 +52,11 @@ const Navbar = () => {
 
   const isActive = (path: string) => window.location.pathname === path;
 
-  // Optimized Helper: High contrast for light/white backgrounds
   const getLinkStyles = (path: string) => {
     const active = isActive(path);
     if (scrolled) {
       return active ? 'text-indigo-600' : 'text-slate-900 hover:text-indigo-500';
     }
-    // Transparent state: Uses Slate-600/900 for high readability on white backgrounds
     return active ? 'text-indigo-600' : 'text-slate-600 hover:text-slate-900';
   };
 
@@ -88,6 +86,24 @@ const Navbar = () => {
 
             {authStore.user && (
               <>
+                <a
+                  href="/my-wishlist"
+                  className={`flex items-center gap-2 text-sm font-bold transition-all ${getLinkStyles('/wishlist')}`}
+                >
+                  <BookmarkIcon className="w-4 h-4" />
+                  Wishlist
+                </a>
+
+
+
+                <a
+              href="/organizers"
+              className={`flex items-center gap-2 text-sm font-bold transition-all ${getLinkStyles('/organizers')}`}
+            >
+              <UsersIcon className="w-4 h-4" />
+              Organizers
+            </a>
+
                 <a
                   href="/following"
                   className={`flex items-center gap-2 text-sm font-bold transition-all ${getLinkStyles('/following')}`}
@@ -205,6 +221,16 @@ const Navbar = () => {
               
               {authStore.user && (
                 <>
+                  <a 
+                    href="/wishlist" 
+                    className={`flex items-center gap-3 p-4 rounded-2xl font-bold transition-all ${
+                      isActive('/wishlist') ? 'bg-indigo-50 text-indigo-600' : 'text-slate-900 hover:bg-slate-50'
+                    }`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <BookmarkIcon className="w-6 h-6" />
+                    My Wishlist
+                  </a>
                   <a 
                     href="/following" 
                     className={`flex items-center gap-3 p-4 rounded-2xl font-bold transition-all ${

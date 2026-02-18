@@ -11,6 +11,7 @@ interface RegisteredOrganizers {
   description: string;
   url: string;
   email: string;
+  profile_img:string;
   created_at: string;
   updated_at: string;
 }
@@ -227,8 +228,6 @@ export const useOrganizerStore = create<OrganizerState>()(
     }),
     {
       name: "organizers-store",
-
-      
       partialize: (state) => ({
         meAsAnOrg: state.meAsAnOrg,
       }),

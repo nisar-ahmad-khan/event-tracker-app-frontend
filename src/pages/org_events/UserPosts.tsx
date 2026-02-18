@@ -37,6 +37,8 @@ const OrganizerEvents: React.FC = () => {
   const myEvents = useOrganizerStore((state) => state.myEvents);
   const fetchMyEvents = useOrganizerStore((state) => state.fetchMyEvents);
   
+
+
   const [loading, setLoading] = useState(true);
 
   // 2. Corrected Scope for del function
@@ -54,7 +56,9 @@ const OrganizerEvents: React.FC = () => {
     const loadData = async () => {
       setLoading(true);
       try {
-        await fetchMyEvents();
+        fetchMyEvents().then(()=>{
+          myEvents.sort((a ,b) => b.id - a.id)
+        });
       } catch (error) {
         console.error("Failed to fetch events:", error);
       } finally {

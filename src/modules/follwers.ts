@@ -6,11 +6,13 @@ import { create } from "zustand";
 import { API_BASE_URL } from "./api";
 import { useProfileStore } from "../stores/store";
 import { useOrganizerStore } from "./organizers";
+import { persist } from "zustand/middleware";
 
 export interface Followers {
   id: number;
   name: string;
   email: string;
+  profile_img:string;
   created_at: string;
   email_verified_at?: string;
   updated_at?: string;
@@ -35,7 +37,9 @@ interface FollowersState {
   followUnFollow: (data: FollowOrganizerUnfollow) => Promise<void>;
 }
 
-export const useFollowerStore = create<FollowersState>((set, get) => ({
+export const useFollowerStore = create<FollowersState>()(
+  persist(
+  (set, get) => ({
   count: 0,
   error: null,
   following: 0,
@@ -52,7 +56,7 @@ export const useFollowerStore = create<FollowersState>((set, get) => ({
       }else{
         console.log("Auth User",isOrg)
       }
-     const meAsAnOrg = useOrganizerStore.getState().meAsAnOrg?.email;
+     const meAsAnOrg = useProfileStore.getState().user?.email;
      console.warn("me as an org",meAsAnOrg)
       const response = await axios.get(
         `${API_BASE_URL}/api/my-followers/${meAsAnOrg}`
@@ -69,7 +73,9 @@ export const useFollowerStore = create<FollowersState>((set, get) => ({
         const {followers } = get();
         console.log("look",followers)
       } else {
-        set({ count: 0, error: "Failed to load followers" });
+        set({ count: 0, error: "Failed to load followers" ,
+          followers: []
+        });
         console.log(response.data )
       }
     } catch (err: any) {
@@ -94,12 +100,12 @@ export const useFollowerStore = create<FollowersState>((set, get) => ({
       );
 
       if (res.data.success) {
-        // Assign followed_users from the API response
+        
         set({
           following: res.data.followed,
           followed_users: res.data.followed_organizers.map((o: any) => ({
             id: o.id,
-            user: o.user, // contains name & email
+            user: o.user, 
             pivot: o.pivot,
           })),
           error: null,
@@ -140,4 +146,6 @@ export const useFollowerStore = create<FollowersState>((set, get) => ({
       alert(err.message);
     }
   },
+}),{
+  name: 'followers-store'
 }));

@@ -5,13 +5,18 @@ import {
   UserGroupIcon,
   ShieldCheckIcon,
   ChatBubbleLeftRightIcon,
+  UserPlusIcon,
   ArrowPathIcon,
 } from "@heroicons/react/24/outline";
 import { useFollowerStore } from "../modules/follwers";
+import { API_BASE_URL } from "../modules/api";
 
 const FollowersPage: React.FC = () => {
   const [search, setSearch] = useState("");
   const [loadingId, setLoadingId] = useState<number | null>(null);
+
+  // Correctly points to server root (removes /api)
+  const SERVER_URL = API_BASE_URL.replace(/\/api$/, "");
 
   const followers = useFollowerStore((state) => state.followers);
   const fetchFollowers = useFollowerStore((state) => state.fetchFollowers);
@@ -40,16 +45,23 @@ const FollowersPage: React.FC = () => {
       // we mark them as mutual.
       const isMutual = f.is_following || false; 
       
+      // Resolve Image URL
+      const imgPath = f.profile_img || f.image;
+      const avatarUrl = imgPath 
+        ? (imgPath.startsWith("http") ? imgPath : `${SERVER_URL}/storage/${imgPath}`)
+        : `https://ui-avatars.com/api/?name=${encodeURIComponent(f.name || "U")}&background=6366f1&color=fff`;
+
       return {
         ...f,
         joinedDate: f.created_at 
           ? new Date(f.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) 
           : "Recently",
         isMutual,
+        avatarUrl,
         avatarColor: isMutual ? "bg-emerald-500" : "bg-indigo-500",
       };
     });
-  }, [followers]);
+  }, [followers, SERVER_URL]);
 
   const filteredFollowers = useMemo(() => {
     return uiFollowers.filter(
@@ -73,7 +85,7 @@ const FollowersPage: React.FC = () => {
               <h1 className="text-3xl font-black text-slate-900">Your Community</h1>
             </div>
             <p className="text-slate-500 font-medium">
-              You have {followers.length} followers
+              Followers <b className="text-slate-600">{followers.length}</b>
             </p>
           </motion.div>
 
@@ -114,9 +126,14 @@ const FollowersPage: React.FC = () => {
                   >
                     <td className="px-8 py-5">
                       <div className="flex items-center gap-4">
-                        <div className={`w-10 h-10 rounded-full ${follower.avatarColor} flex items-center justify-center text-white font-bold`}>
-                          {follower.name?.charAt(0)}
-                        </div>
+                        <img 
+                          src={follower.avatarUrl} 
+                          alt={follower.name}
+                          className="w-10 h-10 rounded-full object-cover border border-slate-100 shadow-sm"
+                          onError={(e) => {
+                             (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${follower.name}&background=6366f1&color=fff`;
+                          }}
+                        />
                         <div>
                           <p className="font-bold text-slate-900">{follower.name}</p>
                           <p className="text-xs text-slate-500">{follower.email}</p>
@@ -142,12 +159,25 @@ const FollowersPage: React.FC = () => {
                     </td>
 
                     <td className="px-8 py-5 text-right">
-                      <div className="flex justify-end gap-2 items-center min-h-[40px]">
-                        <button className="p-2 text-slate-400 hover:text-indigo-600 transition-colors">
+                      <div className="flex justify-end gap-3 items-center min-h-[40px]">
+                        <button className="p-2 text-slate-400 hover:text-indigo-600 transition-colors" title="Message">
                           <ChatBubbleLeftRightIcon className="w-5 h-5" />
                         </button>
-
-                       
+                        
+                        {/* {!follower.isMutual && (
+                          <button 
+                            onClick={() => handleFollowBack(follower.id)}
+                            disabled={loadingId === follower.id}
+                            className="flex items-center gap-1.5 px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-xs font-bold hover:bg-indigo-600 hover:text-white transition-all disabled:opacity-50"
+                          >
+                            {loadingId === follower.id ? (
+                              <ArrowPathIcon className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <UserPlusIcon className="w-3.5 h-3.5" />
+                            )}
+                            Follow Back
+                          </button>
+                        )} */}
                       </div>
                     </td>
                   </motion.tr>
@@ -156,6 +186,14 @@ const FollowersPage: React.FC = () => {
             </tbody>
           </table>
         </div>
+
+        {/* Empty State */}
+        {filteredFollowers.length === 0 && (
+          <div className="mt-12 text-center py-20 bg-white rounded-[2.5rem] border border-slate-200">
+            <UserGroupIcon className="w-12 h-12 text-slate-200 mx-auto mb-4" />
+            <p className="text-slate-400 font-medium">No followers yet!</p>
+          </div>
+        )}
       </div>
     </div>
   );

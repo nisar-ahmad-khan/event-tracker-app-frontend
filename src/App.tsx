@@ -12,6 +12,7 @@ import FollowedAccounts from "./pages/FollowedAccounts"
 import FollowersPage from "./pages/FollowersPage"
 import UserPosts from "./pages/org_events/UserPosts"
 import Footer from "./components/Footer"
+import WishlistPage from "./pages/WishlistPage"
 // import useProfileStore from "./stores/store"
 
 function App() {
@@ -33,6 +34,7 @@ function App() {
     <Route path="/following" element={<FollowedAccounts/>} />
     <Route path='/followers' element={<FollowersPage/>} />
     <Route path="/my-events" element={<UserPosts/>}/>
+    <Route path="/my-wishlist" element={<WishlistPage/>}/>
     </Routes>
     <Footer/>
     </BrowserRouter>

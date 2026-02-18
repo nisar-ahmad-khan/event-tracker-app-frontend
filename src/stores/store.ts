@@ -19,6 +19,7 @@ interface User {
   id: string | number;
   name: string;
   email: string;
+  profile_img:string
 }
 
 interface AuthResponse {
@@ -37,7 +38,7 @@ interface AuthState {
   register: (data: RegisterPayload) => Promise<void>;
   login: (data: LoginPayload) => Promise<void>;
   logout: () => Promise<void>;
-  updateAccount: (data: { name: string; email: string }) => Promise<void>;
+  updateAccount: (data: FormData) => Promise<void>;
 }
 
 export const useProfileStore = create<AuthState>()(
@@ -161,7 +162,7 @@ export const useProfileStore = create<AuthState>()(
               token: response.data.token ?? token,
             });
           } else {
-            alert(response.data.message || "Update failed");
+            console.log(response.data.message || "Update failed");
           }
         } catch (err) {
           console.error(err);
