@@ -2,12 +2,21 @@ import React, { useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Float, MeshWobbleMaterial, TorusKnot } from '@react-three/drei';
 import { EnvelopeIcon, LockClosedIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useProfileStore } from '../stores/store';
 
-// --- Sophisticated 3D Visual for Login ---
-const LoginScene = () => (
+// ----------------------
+// TYPES
+// ----------------------
+interface LoginCredential {
+  email: string;
+  password: string;
+}
+
+// ----------------------
+// 3D Visual Component
+// ----------------------
+const LoginScene: React.FC = () => (
   <mesh>
     <Float speed={1.5} rotationIntensity={1.5} floatIntensity={2}>
       <TorusKnot args={[1, 0.3, 128, 16]} scale={1.8}>
@@ -26,53 +35,41 @@ const LoginScene = () => (
   </mesh>
 );
 
+// ----------------------
+// MAIN LOGIN PAGE
+// ----------------------
 const LoginPage: React.FC = () => {
-
-  interface Logincredential {
-    email:string,
-    password:string
-  }
   const navigate = useNavigate();
+  const login = useProfileStore((state) => state.login);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
- const login = useProfileStore(state=> state.login);
+  // ----------------------
+  // HANDLE LOGIN
+  // ----------------------
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const credentials: LoginCredential = { email, password };
 
-
-
-  const handleLogin = async( data: Logincredential) => {
-    // e.preventDefault();
-
-    try{
-      await login(data);
-
-    navigate('/')
-    }catch(err){
-      alert(err)
+    try {
+      await login(credentials);
+      navigate('/');
+    } catch (err: any) {
+      alert(err?.message || 'Login failed');
     }
-    
-
-
-
-    // const response = await axios.post('http://event-tracker.test/api/login',{
-    //   email : email,
-    //   password: password
-    // });
-    // if(response.data.success){
-    //   localStorage.setItem('user',JSON.stringify(response.data.data)) 
-    //   navigate('/')
-    // }
-    // console.log("Logging in with:", { email, password });
   };
 
+  // ----------------------
+  // RENDER
+  // ----------------------
   return (
     <div className="flex min-h-screen bg-gray-100 font-sans text-slate-900">
-      
       {/* LEFT SIDE: Subtle 3D Visual */}
       <div className="hidden lg:flex w-1/2 bg-slate-50 relative items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 z-0">
-         
-        </div>
+        <Canvas className="absolute inset-0 z-0">
+          <LoginScene />
+        </Canvas>
         <div className="relative z-10 text-center">
           <h2 className="text-4xl font-bold text-slate-200">Welcome Back.</h2>
           <p className="text-slate-500 mt-2 font-medium">Log in to manage your events and tickets.</p>
@@ -82,7 +79,6 @@ const LoginPage: React.FC = () => {
       {/* RIGHT SIDE: Login Form */}
       <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 md:px-24 py-12">
         <div className="max-w-md w-full mx-auto">
-          
           {/* Logo */}
           <div className="mb-12">
             <span className="text-3xl font-black text-[#D1410C] tracking-tighter">eventbrite</span>
@@ -90,10 +86,7 @@ const LoginPage: React.FC = () => {
 
           <h1 className="text-4xl font-bold mb-8 tracking-tight">Log in</h1>
 
-          <form onSubmit={(e)=>{
-            e.preventDefault()
-            handleLogin({email,password})
-          }}  className="space-y-6">
+          <form onSubmit={handleLogin} className="space-y-6">
             {/* Email Input */}
             <div className="relative group">
               <label className="text-xs font-bold uppercase tracking-wider text-slate-500 transition-colors group-focus-within:text-[#D1410C]">
@@ -143,12 +136,8 @@ const LoginPage: React.FC = () => {
             </button>
           </form>
 
-          {/* Social Logins & Divider */}
+          {/* Sign up */}
           <div className="mt-10">
-  
-
-           
-
             <p className="text-center text-sm text-slate-600 mt-10">
               Don't have an account?{' '}
               <a href="/register" className="text-blue-600 font-bold hover:underline transition-all">Sign up</a>

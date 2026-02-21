@@ -16,12 +16,10 @@ const AllOrganizers: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [followedIds, setFollowedIds] = useState<Set<number>>(new Set());
 
-  // Correctly points to server root (removes /api)
   const SERVER_URL = API_BASE_URL.replace(/\/api$/, "");
 
   const organizers = useOrganizerStore((state) => state.orgs);
   const fetchOrganizers = useOrganizerStore((state) => state.fetchOrganizers);
-  const message = useOrganizerStore((state) => state.message);
 
   const { followUnFollow, fetchFollowing, followed_users } = useFollowerStore();
 
@@ -41,11 +39,8 @@ const AllOrganizers: React.FC = () => {
     await followUnFollow({ organizer_id: organizerId });
     setFollowedIds((prev) => {
       const next = new Set(prev);
-      if (next.has(organizerId)) {
-        next.delete(organizerId);
-      } else {
-        next.add(organizerId);
-      }
+      if (next.has(organizerId)) next.delete(organizerId);
+      else next.add(organizerId);
       return next;
     });
   };
@@ -54,15 +49,10 @@ const AllOrganizers: React.FC = () => {
     org.user?.name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  /**
-   * Helper to resolve the organizer's profile image
-   */
   const getOrgImage = (org: any) => {
     const imgPath = org.user?.profile_img || org.user?.image;
     if (imgPath) {
-      return imgPath.startsWith("http")
-        ? imgPath
-        : `${SERVER_URL}/storage/${imgPath}`;
+      return imgPath.startsWith("http") ? imgPath : `${SERVER_URL}/storage/${imgPath}`;
     }
     return `https://ui-avatars.com/api/?name=${encodeURIComponent(
       org.user?.name || "User"
@@ -71,7 +61,6 @@ const AllOrganizers: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#FDFDFF] font-sans pb-10">
-      {/* HERO SECTION */}
       <div className="bg-slate-900 pt-20 md:pt-32 pb-20 md:pb-24 px-6">
         <div className="max-w-7xl mx-auto text-center md:text-left">
           <motion.h1
@@ -82,14 +71,13 @@ const AllOrganizers: React.FC = () => {
             Discover <span className="text-indigo-400">Organizers</span>
           </motion.h1>
           <p className="text-slate-400 max-w-xl mt-4 text-base md:text-lg mx-auto md:ml-0">
-            Connect with top-tier event planners and community leaders across
-            the globe.
+            Connect with top-tier event planners and community leaders across the globe.
           </p>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 md:px-6 -mt-12 space-y-10">
-        {/* STATS SECTION */}
+        {/* STATS */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {[
             { label: "Total Organizers", value: organizers.length, icon: UsersIcon },
@@ -118,12 +106,10 @@ const AllOrganizers: React.FC = () => {
           ))}
         </div>
 
-        {/* DIRECTORY SECTION */}
+        {/* DIRECTORY */}
         <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
           <div className="p-6 md:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <h2 className="font-black text-xl md:text-2xl text-slate-900">
-              Directory
-            </h2>
+            <h2 className="font-black text-xl md:text-2xl text-slate-900">Directory</h2>
             <div className="relative w-full md:w-80">
               <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
               <input
@@ -135,7 +121,7 @@ const AllOrganizers: React.FC = () => {
             </div>
           </div>
 
-          {/* DESKTOP TABLE VIEW */}
+          {/* TABLE VIEW */}
           <div className="hidden lg:block overflow-x-auto">
             <table className="w-full text-left">
               <thead>
@@ -146,25 +132,19 @@ const AllOrganizers: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filteredOrganizers.map((org) => (
-                  <tr
-                    key={org.id}
-                    className="group hover:bg-slate-50/50 transition-colors"
-                  >
+                  <tr key={org.id} className="group hover:bg-slate-50/50 transition-colors">
                     <td className="p-8 flex gap-6 items-center">
                       <img
                         src={getOrgImage(org)}
                         className="w-14 h-14 rounded-2xl object-cover shadow-sm bg-slate-100"
-                        alt={org.user?.name}
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${org.user?.name}&background=6366f1&color=fff`;
-                        }}
+                        alt={org.user?.name || "User"}
                       />
                       <div>
                         <p className="font-black text-slate-900 group-hover:text-indigo-600 transition-colors">
-                          {org.user?.name}
+                          {org.user?.name || "Unknown"}
                         </p>
                         <p className="text-sm text-slate-400 font-medium">
-                          {org.user?.email}
+                          {org.user?.email || ""}
                         </p>
                       </div>
                     </td>
@@ -194,7 +174,7 @@ const AllOrganizers: React.FC = () => {
             </table>
           </div>
 
-          {/* MOBILE CARD VIEW */}
+          {/* MOBILE VIEW */}
           <div className="lg:hidden divide-y divide-slate-100">
             {filteredOrganizers.map((org) => (
               <div key={org.id} className="p-6 flex flex-col gap-4">
@@ -202,15 +182,13 @@ const AllOrganizers: React.FC = () => {
                   <img
                     src={getOrgImage(org)}
                     className="w-12 h-12 rounded-xl object-cover bg-slate-100"
-                    alt={org.user?.name}
+                    alt={org.user?.name || "User"}
                   />
                   <div className="overflow-hidden">
                     <p className="font-black text-slate-900 truncate">
-                      {org.user?.name}
+                      {org.user?.name || "Unknown"}
                     </p>
-                    <p className="text-xs text-slate-400 truncate">
-                      {org.user?.email}
-                    </p>
+                    <p className="text-xs text-slate-400 truncate">{org.user?.email || ""}</p>
                   </div>
                 </div>
                 <button
@@ -242,7 +220,7 @@ const AllOrganizers: React.FC = () => {
                 <UsersIcon className="w-8 h-8 text-slate-300" />
               </div>
               <p className="text-slate-400 font-bold">
-                {message || "Organizers not Found!."}
+                Organizers not found.
               </p>
             </div>
           )}

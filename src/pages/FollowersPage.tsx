@@ -5,17 +5,24 @@ import {
   UserGroupIcon,
   ShieldCheckIcon,
   ChatBubbleLeftRightIcon,
-  UserPlusIcon,
-  ArrowPathIcon,
 } from "@heroicons/react/24/outline";
 import { useFollowerStore } from "../modules/follwers";
 import { API_BASE_URL } from "../modules/api";
+
+interface Follower {
+  id: number;
+  name: string;
+  email?: string;
+  profile_img?: string;
+  image?: string;
+  is_following?: boolean;
+  created_at?: string;
+}
 
 const FollowersPage: React.FC = () => {
   const [search, setSearch] = useState("");
   const [loadingId, setLoadingId] = useState<number | null>(null);
 
-  // Correctly points to server root (removes /api)
   const SERVER_URL = API_BASE_URL.replace(/\/api$/, "");
 
   const followers = useFollowerStore((state) => state.followers);
@@ -30,7 +37,6 @@ const FollowersPage: React.FC = () => {
     setLoadingId(organizerId);
     try {
       await followUnFollow({ organizer_id: organizerId });
-      // Refresh to get updated follow status from backend
       await fetchFollowers();
     } catch (err: any) {
       console.error("Action failed:", err.message);
@@ -40,21 +46,22 @@ const FollowersPage: React.FC = () => {
   };
 
   const uiFollowers = useMemo(() => {
-    return (followers || []).map((f) => {
-      // Logic: If the backend indicates you are already following them, 
-      // we mark them as mutual.
-      const isMutual = f.is_following || false; 
-      
-      // Resolve Image URL
+    return (followers || []).map((f: Follower) => {
+      const isMutual = f.is_following || false;
       const imgPath = f.profile_img || f.image;
-      const avatarUrl = imgPath 
-        ? (imgPath.startsWith("http") ? imgPath : `${SERVER_URL}/storage/${imgPath}`)
+      const avatarUrl = imgPath
+        ? imgPath.startsWith("http")
+          ? imgPath
+          : `${SERVER_URL}/storage/${imgPath}`
         : `https://ui-avatars.com/api/?name=${encodeURIComponent(f.name || "U")}&background=6366f1&color=fff`;
 
       return {
         ...f,
-        joinedDate: f.created_at 
-          ? new Date(f.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) 
+        joinedDate: f.created_at
+          ? new Date(f.created_at).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+            })
           : "Recently",
         isMutual,
         avatarUrl,
@@ -74,7 +81,6 @@ const FollowersPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50 pt-28 pb-12 px-6">
       <div className="max-w-5xl mx-auto">
-        
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
@@ -126,12 +132,12 @@ const FollowersPage: React.FC = () => {
                   >
                     <td className="px-8 py-5">
                       <div className="flex items-center gap-4">
-                        <img 
-                          src={follower.avatarUrl} 
+                        <img
+                          src={follower.avatarUrl}
                           alt={follower.name}
                           className="w-10 h-10 rounded-full object-cover border border-slate-100 shadow-sm"
                           onError={(e) => {
-                             (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${follower.name}&background=6366f1&color=fff`;
+                            (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${follower.name}&background=6366f1&color=fff`;
                           }}
                         />
                         <div>
@@ -160,24 +166,12 @@ const FollowersPage: React.FC = () => {
 
                     <td className="px-8 py-5 text-right">
                       <div className="flex justify-end gap-3 items-center min-h-[40px]">
-                        <button className="p-2 text-slate-400 hover:text-indigo-600 transition-colors" title="Message">
+                        <button
+                          className="p-2 text-slate-400 hover:text-indigo-600 transition-colors"
+                          title="Message"
+                        >
                           <ChatBubbleLeftRightIcon className="w-5 h-5" />
                         </button>
-                        
-                        {/* {!follower.isMutual && (
-                          <button 
-                            onClick={() => handleFollowBack(follower.id)}
-                            disabled={loadingId === follower.id}
-                            className="flex items-center gap-1.5 px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-xs font-bold hover:bg-indigo-600 hover:text-white transition-all disabled:opacity-50"
-                          >
-                            {loadingId === follower.id ? (
-                              <ArrowPathIcon className="w-3.5 h-3.5 animate-spin" />
-                            ) : (
-                              <UserPlusIcon className="w-3.5 h-3.5" />
-                            )}
-                            Follow Back
-                          </button>
-                        )} */}
                       </div>
                     </td>
                   </motion.tr>

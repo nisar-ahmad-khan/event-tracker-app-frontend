@@ -5,13 +5,32 @@ import {
   Calendar, 
   MapPin, 
   ExternalLink, 
-  BookmarkX,
-  User,
-  Clock
+  BookmarkX 
 } from 'lucide-react';
 
-// Mock data structure based on your requirements
-const INITIAL_WISHLIST = [
+// ----------------------
+// TYPES
+// ----------------------
+interface Organizer {
+  name: string;
+  avatar: string;
+  followers: string;
+}
+
+interface WishlistItem {
+  id: number;
+  title: string;
+  date: string;
+  time: string;
+  location: string;
+  image: string;
+  organizer: Organizer;
+}
+
+// ----------------------
+// MOCK DATA
+// ----------------------
+const INITIAL_WISHLIST: WishlistItem[] = [
   {
     id: 1,
     title: "Global Tech Summit 2026",
@@ -40,13 +59,22 @@ const INITIAL_WISHLIST = [
   }
 ];
 
-const WishlistPage = () => {
-  const [items, setItems] = useState(INITIAL_WISHLIST);
+// ----------------------
+// MAIN COMPONENT
+// ----------------------
+const WishlistPage: React.FC = () => {
+  const [items, setItems] = useState<WishlistItem[]>(INITIAL_WISHLIST);
 
-  const removeItem = (id) => {
+  // ----------------------
+  // REMOVE ITEM
+  // ----------------------
+  const removeItem = (id: number) => {
     setItems(items.filter(item => item.id !== id));
   };
 
+  // ----------------------
+  // RENDER
+  // ----------------------
   return (
     <div className="min-h-screen bg-slate-50 pt-28 pb-20 px-6 md:px-12">
       {/* Header Section */}
@@ -59,13 +87,13 @@ const WishlistPage = () => {
             My <span className="text-indigo-600">Wishlist</span>
           </h1>
           <p className="text-slate-500 font-medium">
-            You have {items.length} events saved for later.
+            You have {items.length} {items.length === 1 ? 'event' : 'events'} saved for later.
           </p>
         </motion.div>
       </div>
 
       <div className="max-w-7xl mx-auto">
-        <AnimatePresence mode='popLayout'>
+        <AnimatePresence mode="popLayout">
           {items.length > 0 ? (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {items.map((event) => (
@@ -95,9 +123,9 @@ const WishlistPage = () => {
                         <img 
                           src={event.organizer.avatar} 
                           className="w-6 h-6 rounded-full border border-slate-200" 
-                          alt="" 
+                          alt={event.organizer.name} 
                         />
-                        <span className="text-xs font-bold text-slate-600 uppercase tracking-wider uppercase">
+                        <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">
                           {event.organizer.name}
                         </span>
                       </div>
