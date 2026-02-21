@@ -242,7 +242,7 @@ const AllOrganizers: React.FC = () => {
                 <UsersIcon className="w-8 h-8 text-slate-300" />
               </div>
               <p className="text-slate-400 font-bold">
-                {message || "No organizers found matching your search."}
+                {message || "Organizers not Found!."}
               </p>
             </div>
           )}

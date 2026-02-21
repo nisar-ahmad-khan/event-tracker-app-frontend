@@ -44,6 +44,7 @@ export const useEventStore = create<EventProps>()(
             set({
                 fetchedEvents: response.data.data
             })
+            console.log('user', response.data.data[0].organizer.user.name)
         }else{
             console.log(response.data.message)
            set({

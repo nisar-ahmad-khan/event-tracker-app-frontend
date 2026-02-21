@@ -83,26 +83,8 @@ const Navbar = () => {
               <UsersIcon className="w-4 h-4" />
               Organizers
             </a>
-
             {authStore.user && (
               <>
-                <a
-                  href="/my-wishlist"
-                  className={`flex items-center gap-2 text-sm font-bold transition-all ${getLinkStyles('/wishlist')}`}
-                >
-                  <BookmarkIcon className="w-4 h-4" />
-                  Wishlist
-                </a>
-
-
-
-                <a
-              href="/organizers"
-              className={`flex items-center gap-2 text-sm font-bold transition-all ${getLinkStyles('/organizers')}`}
-            >
-              <UsersIcon className="w-4 h-4" />
-              Organizers
-            </a>
 
                 <a
                   href="/following"
