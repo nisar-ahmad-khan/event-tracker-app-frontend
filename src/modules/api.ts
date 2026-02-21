@@ -1,1 +1,1 @@
-export const API_BASE_URL = 'http://event-tracker.test'
+export const API_BASE_URL = 'https://cms.eventlay.com'

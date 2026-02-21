@@ -1,35 +1,39 @@
+// src/stores/store.ts
 import axios, { AxiosError } from "axios";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-const API_BASE_URL = "http://event-tracker.test";
+export const API_BASE_URL = "http://event-tracker.test";
 
-interface RegisterPayload {
+// ----------------------
+// Type Definitions
+// ----------------------
+export interface RegisterPayload {
   name: string;
   email: string;
   password: string;
 }
 
-interface LoginPayload {
+export interface LoginPayload {
   email: string;
   password: string;
 }
 
-interface User {
+export interface User {
   id: string | number;
   name: string;
   email: string;
-  profile_img:string
+  profile_img: string;
 }
 
-interface AuthResponse {
+export interface AuthResponse {
   success: boolean;
   data: User;
   token?: string;
   message?: string;
 }
 
-interface AuthState {
+export interface AuthState {
   user: User | null;
   token: string | null;
   loading: boolean;
@@ -41,6 +45,9 @@ interface AuthState {
   updateAccount: (data: FormData) => Promise<void>;
 }
 
+// ----------------------
+// Zustand Store
+// ----------------------
 export const useProfileStore = create<AuthState>()(
   persist(
     (set, get) => ({
@@ -54,14 +61,9 @@ export const useProfileStore = create<AuthState>()(
         set({ loading: true, error: null });
 
         try {
-          const res = await axios.post<AuthResponse>(
-            `${API_BASE_URL}/api/user`,
-            data
-          );
+          const res = await axios.post<AuthResponse>(`${API_BASE_URL}/api/user`, data);
 
-          if (!res.data.success) {
-            throw new Error(res.data.message || "Registration failed");
-          }
+          if (!res.data.success) throw new Error(res.data.message || "Registration failed");
 
           set({
             user: res.data.data,
@@ -83,14 +85,9 @@ export const useProfileStore = create<AuthState>()(
         set({ loading: true, error: null });
 
         try {
-          const res = await axios.post<AuthResponse>(
-            `${API_BASE_URL}/api/login`,
-            data
-          );
+          const res = await axios.post<AuthResponse>(`${API_BASE_URL}/api/login`, data);
 
-          if (!res.data.success) {
-            throw new Error(res.data.message || "Login failed");
-          }
+          if (!res.data.success) throw new Error(res.data.message || "Login failed");
 
           set({
             user: res.data.data,
@@ -109,34 +106,30 @@ export const useProfileStore = create<AuthState>()(
 
       /* ---------- Logout ---------- */
       logout: async () => {
-  const { user, token } = get();
+        const { user, token } = get();
 
-  // Call API logout if user is authenticated
-  if (user && token) {
-    try {
-      await axios.post(
-        `${API_BASE_URL}/api/logout/${user.id}`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
+        if (user && token) {
+          try {
+            await axios.post(
+              `${API_BASE_URL}/api/logout/${user.id}`,
+              {},
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+          } catch (err) {
+            console.error("Logout API failed", err);
+          }
         }
-      );
-    } catch (err) {
-      console.error("Logout API failed", err);
-     
-    }
-  }
 
+        set({ user: null, token: null });
 
-  set({ user: null, token: null });
+        // Clear local storage keys safely
+        ["auth-store", "organizers-store", "followers-store"].forEach((key) =>
+          localStorage.removeItem(key)
+        );
 
-
-  localStorage.removeItem("user");
-  localStorage.removeItem("token");
-  localStorage.removeItem("organizers-store");
-  window.location.href = "/";
-},
-
+        // Redirect to login page
+        window.location.href = "/";
+      },
 
       /* ---------- Update Account ---------- */
       updateAccount: async (data) => {
@@ -151,9 +144,7 @@ export const useProfileStore = create<AuthState>()(
           const response = await axios.put<AuthResponse>(
             `${API_BASE_URL}/api/update-account/${user.id}`,
             data,
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            }
+            { headers: { Authorization: `Bearer ${token}` } }
           );
 
           if (response.data.success) {
