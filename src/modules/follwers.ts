@@ -25,11 +25,23 @@ export interface Pivot {
 
 export interface Followers {
   id: number;
-  user: User;          // fixed missing user
+  name: string;
+  email: string;
+  profile_img: string;
   created_at: string;
   email_verified_at?: string;
   updated_at?: string;
-  pivot?: Pivot;
+  pivot?: {
+    organizer_id: number;
+    user_id: string | number;
+  };
+  user?: { // add this if you access it like follower.user.name
+    id: number | string;
+    name: string;
+    email: string;
+    profile_img?: string;
+  };
+  is_following?: boolean;
 }
 
 export interface FollowOrganizerUnfollow {

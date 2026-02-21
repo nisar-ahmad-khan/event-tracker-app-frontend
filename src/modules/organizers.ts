@@ -11,9 +11,9 @@ import { useProfileStore } from "../stores/store";
 // ----------------------
 
 export interface RegisteredOrganizers {
-  id: string | number;
-  user_id: string | number;
-  phone_number: string | number;
+  id: number;
+  user_id: number;
+  phone_number: number;
   description: string;
   url: string;
   email: string;
@@ -21,6 +21,8 @@ export interface RegisteredOrganizers {
   created_at: string;
   updated_at: string;
 }
+
+
 
 export interface OrgEvent {
   id: number;
