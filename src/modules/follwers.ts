@@ -1,15 +1,9 @@
-// src/modules/follwers.ts
-
 import axios from "axios";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { API_BASE_URL } from "./api";
 import { useProfileStore } from "../stores/store";
 import { useOrganizerStore } from "./organizers";
-
-// ----------------------
-// Type Definitions
-// ----------------------
 
 export interface User {
   id: string | number;
@@ -27,20 +21,12 @@ export interface Followers {
   id: number;
   name: string;
   email: string;
-  profile_img: string;
+  profile_img?: string;
   created_at: string;
   email_verified_at?: string;
   updated_at?: string;
-  pivot?: {
-    organizer_id: number;
-    user_id: string | number;
-  };
-  user?: { // add this if you access it like follower.user.name
-    id: number | string;
-    name: string;
-    email: string;
-    profile_img?: string;
-  };
+  pivot?: Pivot;
+  user?: User; // this allows follower.user.name usage
   is_following?: boolean;
 }
 
@@ -59,37 +45,21 @@ export interface FollowersState {
   followUnFollow: (data: FollowOrganizerUnfollow) => Promise<void>;
 }
 
-// ----------------------
-// Zustand Store
-// ----------------------
-
 export const useFollowerStore = create<FollowersState>()(
   persist(
     (set, get) => ({
       count: 0,
       error: null,
       following: 0,
-      followers: [],
       followed_users: [],
+      followers: [],
 
       fetchFollowers: async () => {
         try {
-          const isOrg = useOrganizerStore.getState().meAsAnOrg;
-
-          if (!isOrg) {
-            console.log("user not found!");
-          } else {
-            console.log("Auth User", isOrg);
-          }
-
           const meAsAnOrg = useProfileStore.getState().user?.email;
-          console.warn("me as an org", meAsAnOrg);
+          if (!meAsAnOrg) return;
 
-          const response = await axios.get(
-            `${API_BASE_URL}/api/my-followers/${meAsAnOrg}`
-          );
-
-          console.warn(response.data);
+          const response = await axios.get(`${API_BASE_URL}/api/my-followers/${meAsAnOrg}`);
 
           if (response.data.success) {
             set({
@@ -109,22 +79,11 @@ export const useFollowerStore = create<FollowersState>()(
               })),
               error: null,
             });
-
-            console.log("look", get().followers);
           } else {
-            set({
-              count: 0,
-              error: "Failed to load followers",
-              followers: [],
-            });
-            console.log(response.data);
+            set({ count: 0, error: "Failed to load followers", followers: [] });
           }
         } catch (err: any) {
-          set({
-            count: 0,
-            error: err.message ?? "Something went wrong",
-            followers: [],
-          });
+          set({ count: 0, error: err.message ?? "Something went wrong", followers: [] });
         }
       },
 
@@ -136,9 +95,7 @@ export const useFollowerStore = create<FollowersState>()(
             return;
           }
 
-          const res = await axios.get(
-            `${API_BASE_URL}/api/my-followed/${authUser.id}`
-          );
+          const res = await axios.get(`${API_BASE_URL}/api/my-followed/${authUser.id}`);
 
           if (res.data.success) {
             set({
@@ -158,28 +115,17 @@ export const useFollowerStore = create<FollowersState>()(
               })),
               error: null,
             });
-
-            console.log(
-              "Followed users:",
-              get().followed_users.map((u) => u.user)
-            );
           } else {
             set({ following: 0, error: "Failed to load following", followed_users: [] });
           }
         } catch (err: any) {
-          set({
-            following: 0,
-            error: err.message ?? "Something went wrong!",
-            followed_users: [],
-          });
+          set({ following: 0, error: err.message ?? "Something went wrong", followed_users: [] });
         }
       },
 
       followUnFollow: async (data: FollowOrganizerUnfollow) => {
         try {
-          const user = useProfileStore.getState().user;
-          const token = useProfileStore.getState().token;
-
+          const { user, token } = useProfileStore.getState();
           if (!user?.id || !token) throw new Error("User not authenticated");
 
           const response = await axios.post(
@@ -188,11 +134,8 @@ export const useFollowerStore = create<FollowersState>()(
             { headers: { Authorization: `Bearer ${token}` } }
           );
 
-          if (response.data.success) {
-            await get().fetchFollowing();
-          } else {
-            alert("Something went wrong!");
-          }
+          if (response.data.success) await get().fetchFollowing();
+          else alert("Something went wrong!");
         } catch (err: any) {
           alert(err.message);
         }
